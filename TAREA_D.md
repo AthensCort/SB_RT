@@ -1,6 +1,6 @@
 # Tarea Individual D — Panel de estadísticas en vivo
 
-**Estudiante asignado:** Carolina de Jesus  
+**Estudiante asignado:** Carolina de Jesus Ortega Cepeda A01282386 OMG
 **Feature de Realtime:** Estado derivado del stream de `INSERT`
 
 ---

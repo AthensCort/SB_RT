@@ -3,6 +3,7 @@ import { supabase } from './lib/supabaseClient'
 import Scoreboard   from './components/Scoreboard'
 import EventFeed    from './components/EventFeed'
 import NewEventForm from './components/NewEventForm'
+import StatsPanel from './components/StatsPanel'
 import MatchChat    from './components/MatchChat'
 
 export default function App() {
@@ -125,6 +126,7 @@ export default function App() {
         onReset={resetScore}
       />
 
+      <StatsPanel events={events} />    {/* [D] */}
       <NewEventForm />
 
       <EventFeed events={events} />
