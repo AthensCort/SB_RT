@@ -4,6 +4,10 @@ import Scoreboard   from './components/Scoreboard'
 import EventFeed    from './components/EventFeed'
 import NewEventForm from './components/NewEventForm'
 import ToastContainer from './components/ToastContainer'
+import ScoreHistory from './components/ScoreHistory'
+import StatsPanel from './components/StatsPanel'
+import MatchChat    from './components/MatchChat'
+import PresenceIndicator from './components/PresenceIndicator'
 
 export default function App() {
   const [match,  setMatch]  = useState(null)
@@ -11,6 +15,7 @@ export default function App() {
   const [error,  setError]  = useState(null)
   const [toasts, setToasts]     = useState([])          // [C]
   const localInsertIds          = useRef(new Set())      // [C] ids insertados por este cliente
+  const [scoreHistory, setScoreHistory] = useState([])
 
   // ── Carga inicial ──────────────────────────────────────────────
   // Se ejecuta una sola vez al montar. Garantiza que un cliente que
@@ -48,7 +53,18 @@ export default function App() {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'match_state' },
-        (payload) => setMatch(payload.new),
+        (payload) => {
+          setMatch(payload.new)
+          // [A] Cada UPDATE agrega una entrada al historial en memoria
+          setScoreHistory((prev) => [
+            {
+              home: payload.new.home_score,
+              away: payload.new.away_score,
+              at: new Date().toISOString(),
+            },
+            ...prev,
+          ])
+        },
       )
       .on(
         'postgres_changes',
@@ -129,6 +145,7 @@ export default function App() {
       <h1 style={{ fontSize: '1.1rem', color: '#888', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
         Panel de Partido en Vivo
       </h1>
+      <PresenceIndicator />    {/* [B] */}
 
       <Scoreboard
         match={match}
@@ -138,8 +155,14 @@ export default function App() {
       />
 
       <NewEventForm onInsert={(id) => localInsertIds.current.add(id)} />
+      <ScoreHistory history={scoreHistory} /> 
+
+      <StatsPanel events={events} />    {/* [D] */}
+      <NewEventForm />
 
       <EventFeed events={events} />
+
+      <MatchChat />
     </div>
     <ToastContainer
       toasts={toasts}
