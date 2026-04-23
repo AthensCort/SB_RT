@@ -3,6 +3,7 @@ import { supabase } from './lib/supabaseClient'
 import Scoreboard   from './components/Scoreboard'
 import EventFeed    from './components/EventFeed'
 import NewEventForm from './components/NewEventForm'
+import ScoreHistory from './components/ScoreHistory'
 import StatsPanel from './components/StatsPanel'
 import MatchChat    from './components/MatchChat'
 
@@ -10,6 +11,7 @@ export default function App() {
   const [match,  setMatch]  = useState(null)
   const [events, setEvents] = useState([])
   const [error,  setError]  = useState(null)
+  const [scoreHistory, setScoreHistory] = useState([])
 
   // ── Carga inicial ──────────────────────────────────────────────
   // Se ejecuta una sola vez al montar. Garantiza que un cliente que
@@ -47,7 +49,18 @@ export default function App() {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'match_state' },
-        (payload) => setMatch(payload.new),
+        (payload) => {
+          setMatch(payload.new)
+          // [A] Cada UPDATE agrega una entrada al historial en memoria
+          setScoreHistory((prev) => [
+            {
+              home: payload.new.home_score,
+              away: payload.new.away_score,
+              at: new Date().toISOString(),
+            },
+            ...prev,
+          ])
+        },
       )
       .on(
         'postgres_changes',
@@ -125,6 +138,8 @@ export default function App() {
         onGoalAway={goalAway}
         onReset={resetScore}
       />
+
+      <ScoreHistory history={scoreHistory} /> 
 
       <StatsPanel events={events} />    {/* [D] */}
       <NewEventForm />
